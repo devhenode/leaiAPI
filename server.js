@@ -3,6 +3,7 @@ import express from "express";
 import corsMiddleware from "./middleware/cors.js";
 import { auth_middleware } from "./auth/auth_middleware.js";
 import { user_post } from "./auth/user/user_post.js";
+import { user_login } from "./auth/user/user_login.js";
 
 dotenv.config();
 
@@ -11,8 +12,14 @@ app.use(corsMiddleware);
 app.use(express.json());
 
 // Add two routes - one with auth and one for testing
-app.post('/api/signup', auth_middleware, user_post); // Original route with auth
-app.post('/api/signup/test', user_post); // Test route without auth
+// app.post('/api/signup', auth_middleware, user_post); // Original route with auth
+app.post('/api/signup', user_post); // Test route without auth
+app.post('/api/login', (req, res, next) => {
+    console.log('Login request headers:', req.headers);
+    console.log('Login request body:', req.body);
+    console.log('Content-Type:', req.get('Content-Type'));
+    next();
+}, user_login);
 
 // Enhanced CORS settings
 app.options('*', (req, res) => {

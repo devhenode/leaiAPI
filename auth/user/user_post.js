@@ -1,14 +1,14 @@
 import { CreateUser } from "../../supabase/Database/user/createUser.js";
 
 export const user_post = async (req, res) => {
-    const { name, email } = req.body;
+    const { name, email, password } = req.body;
     
     if (!name || !email) {
         return res.status(400).json({ error: "Name and email are required" });
     }
 
     try {
-        const result = await CreateUser({ name, email });
+        const result = await CreateUser({ name, email, });
         if (!result) {
             return res.status(500).json({ error: "Failed to create user" });
         }
