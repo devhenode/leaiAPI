@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { google } from "googleapis"
 import { body, validationResult } from 'express-validator';
 import express from "express"; // Import express
 import rateLimit from "express-rate-limit"
@@ -6,6 +7,12 @@ import rateLimit from "express-rate-limit"
 const router = express.Router(); // define a router instead of app
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+
+const youtube = google.youtube({
+    version: 'v3',
+    auth: process.env.YOUTUBE_API_KEY
+})
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -39,6 +46,49 @@ function updateChatHistory(user_id, prompt, response) {
         userHistory.shift();
     }
 }
+
+router.post('/api/video', [
+    body('prompt').trim().notEmpty().withMessage('Prompt cannot be empty'),
+], async (req, res) => {
+    const { prompt } = req.body;
+
+    try {
+        // Using gemini to generate video for user
+        const result = await model.generateContent(
+            `Generate 2-3 relevant Youtube search terms for: ${prompt}`
+        );
+        const searchTerms = result.response.text();
+
+        // Youtube search
+        const response = await youtube.search.list({
+            part: 'snippet',
+            q: searchTerms,
+            maxResults: 5,
+            type: 'video'
+        });
+
+        const video = response.data.items.map(item => ({
+            id: item.id.videoId,
+            title: item.snippet.title,
+            thumbnail: item.snippet.thumbnails.medium,
+            channelTitle: item.snippet.channelTitle,
+            description: item.snippet.description
+        }));
+
+        res.json({
+            success: true,
+            video,
+            searchTerms,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        })
+    }
+})
 
 
 router.post("/api/chat", [
