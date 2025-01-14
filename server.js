@@ -12,7 +12,7 @@ const corsOptions = {
     origin: [
         "http://localhost:5173/",
         'https://leai-eight.vercel.app/', // Add your Vercel domain
-        'https://leaiapi.onrender.com'    // Add your Render domain
+        'https://leaiapi.onrender.com/'    // Add your Render domain
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
