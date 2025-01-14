@@ -10,8 +10,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const corsOptions = {
     origin: [
-        'http://localhost:5173',
-        'https://leai-eight.vercel.app', // Add your Vercel domain
+        "http://localhost:5173/",
+        'https://leai-eight.vercel.app/', // Add your Vercel domain
         'https://leaiapi.onrender.com'    // Add your Render domain
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
