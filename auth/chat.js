@@ -1,3 +1,4 @@
+import  supabase from '../supabase-client.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { google } from "googleapis"
 import { body, validationResult } from 'express-validator';
@@ -29,23 +30,45 @@ const config = {
     topP: 0.95
 }
 
-const chatHistory = new Map();
-
-function updateChatHistory(user_id, prompt, response) {
-    if (!chatHistory.has(user_id)) {
-        chatHistory.set(user_id, []);
+async function saveChatMessage(user_id, prompt, response) {
+    try {
+        const {data, error } = await supabse
+            .from("chat_history")
+            .insert([
+                {
+                    user_id: user_id,
+                    prompt: prompt,
+                    response: response,
+                    timestamp: new Date().toISOString()
+                }
+            ]);
+        
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error("Error saving to supabse:", error);
+        throw error;
     }
-    const userHistory = chatHistory.get(user_id);
-    userHistory.push({
-        prompt,
-        response,
-        timestamp: new Date().toISOString()
-    });
 
-    if (userHistory.length > 10) {
-        userHistory.shift();
+}
+
+async function getChatHistory(user_id, limit = 10) {
+    try {
+        const { data, error } = await supabase
+            .from("chat_history")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("timestamp", { ascending: false })
+            .limit(limit);
+        
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error("Error fetching from supabase: ", error);
+        throw error;
     }
 }
+
 
 router.post('/api/video', [
     body('prompt').trim().notEmpty().withMessage('Prompt cannot be empty'),
@@ -107,7 +130,7 @@ router.post("/api/chat", [
 
     try {
         // Initialize chat with history if user ID provided
-        const userHistory = user_id ? chatHistory.get(user_id) || [] : [];
+        const userHistory = user_id ? await getChatHistory(user_id) : [];
 
         const chat = model.startChat({
             history: userHistory,
@@ -119,7 +142,7 @@ router.post("/api/chat", [
         // console.log("full result: ", result)
         const text = result.response.text();
         if (user_id) {
-            updateChatHistory(user_id, prompt, text);
+            await saveChatMessage(user_id, prompt, text);
         }
         
         console.log("Generated text: ", text);
@@ -150,26 +173,47 @@ router.get("/api/chat/health", (req, res) => {
 });
 
 // get chat History: for users
-
-router.get("/api/chat/history/:user_id", (req, res) => {
+router.get("/api/chat/history/:user_id", async (req, res) => {
     const { user_id } = req.params;
-    const userHistory = chatHistory.get(user_id) || [];
-
-    res.json({
-        success: true,
-        history: userHistory,
-        timestamp: new Date().toISOString()
-    })
+    try {
+        const history = await getChatHistory(user_id);
+        res.json({
+            success: true,
+            history,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: "Failed to fetch chat history",
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
-router.delete("/api/chat/history/:user_id", (req, res) => {
+router.delete("/api/chat/history/:user_id", async (req, res) => {
     const { user_id } = req.params;
-    chatHistory.delete(user_id);
+    try {
+        const { error } = await supabase
+            .from('chat_history')
+            .delete()
+            .eq('user_id', user_id);
 
-    res.json({
-        success: true,
-        message: "Chat History Deleted",
-        timestamp: new Date().toISOString()
-    })
-})
+        if (error) throw error;
+
+        res.json({
+            success: true,
+            message: "Chat History Deleted",
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: "Failed to delete chat history",
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
 export default router; // Exporting the router;

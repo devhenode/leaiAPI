@@ -6,7 +6,11 @@ const router = express.Router();
 router.post('/api/signup', async (req, res) => {
     const {name, email, password} = req.body;
     try {
-        const {user, error } = await supabase.auth.signUp({ email, password })
+        const {user, error } = await supabase.auth.signUp({
+          email, 
+          password,
+          options: { data: { name } } 
+        })
         if (error) throw error;
         res.json({ message: "Signup Succesful, Check your email for confirmation", user: user})
         console.log('Signup response:', user);
@@ -44,7 +48,7 @@ router.post('/api/signup-otp', async (req, res) => {
             email,
             password,
             options: {
-                signInWithOtp: true
+              signInWithOtp: true
             }
         });
         if (error) throw error;
