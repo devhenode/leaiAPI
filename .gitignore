@@ -1,4 +1,5 @@
 node_modules/
+codealike.json
 
 *.env-local
 *.env
