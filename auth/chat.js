@@ -9,7 +9,6 @@ const router = express.Router(); // define a router instead of app
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-
 const youtube = google.youtube({
     version: 'v3',
     auth: process.env.YOUTUBE_API_KEY
@@ -144,11 +143,12 @@ router.post("/api/chat", [
         if (user_id) {
             await saveChatMessage(user_id, prompt, text);
         }
+        const cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
         
         console.log("Generated text: ", text);
         res.json({        
             success: true,
-            generatedPrompt: text,
+            generatedPrompt: cleanText,
             timestamp: new Date().toISOString(),
             messageId: crypto.randomUUID()
         }); // Send response back to frontend
