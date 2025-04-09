@@ -69,10 +69,10 @@ async function getChatHistory(user_id, limit = 10) {
 }
 
 
-router.post('/api/video', [
+router.get('/api/video', [
     body('prompt').trim().notEmpty().withMessage('Prompt cannot be empty'),
 ], async (req, res) => {
-    const { prompt } = req.body;
+    const { prompt } = req.query; // Use req.query for GET requests
 
     try {
         // Using gemini to generate video for user
