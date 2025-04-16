@@ -145,7 +145,7 @@ router.post("/api/chat", [
         }
         const cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
         
-        console.log("Generated text: ", text);
+        // console.log("Generated text: ", text);
         res.json({        
             success: true,
             generatedPrompt: cleanText,
