@@ -7,7 +7,7 @@ import rateLimit from "express-rate-limit"
 
 const router = express.Router(); // define a router instead of app
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
 const youtube = google.youtube({
     version: 'v3',
