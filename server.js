@@ -14,6 +14,7 @@ const corsOptions = {
     origin: [
         "http://localhost:5173",
         'https://leai-full.vercel.app',
+        'http://www.leai.live',
         'http://leai.live',
         'https://leaiapi.onrender.com'
     ],
